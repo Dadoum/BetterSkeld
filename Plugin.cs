@@ -2,6 +2,7 @@
 using BepInEx;
 using BepInEx.IL2CPP;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -12,7 +13,6 @@ namespace BetterSkeld
     {
         public static BetterSkeldPlugin Instance { get; private set; }
         private static bool patched;
-
 
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Awake))]
         public static class ShipStatusAwakePatch
@@ -59,6 +59,15 @@ namespace BetterSkeld
                     Instance.Log.LogDebug("Done !");
                     patched = true;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(VersionShower), nameof(VersionShower.Start))]
+        public static class VersionShowerPatch
+        {
+            public static void Postfix(VersionShower __instance)
+            {
+                __instance.text.text += $"<size=40%> + {PluginInfo.PLUGIN_NAME} v{PluginInfo.PLUGIN_VERSION} (Dadoum)</size>";
             }
         }
         

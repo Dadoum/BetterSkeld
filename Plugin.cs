@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.IL2CPP;
 using HarmonyLib;
@@ -47,11 +47,124 @@ namespace BetterSkeld
                 
                 Instance.Log.LogDebug("Patching TheSkeld...");
                 
-                // Récup les ressources
+                // Récup les ressources (avec une méthode moche mais rapide).
+                GameObject admin = null;
+                GameObject animation = null;
+                Vent adminVent = null;
+                Vent cafeteriaVent = null;
+                Vent navNordVent = null;
+                Vent navSudVent = null;
+                Vent weaponsVent = null;
+                Vent shieldVent = null;
+                Vent couloirVent = null;
+                Vent elecVent = null;
+                Vent reactorNordVent = null;
+                Vent reactorSudVent = null;
+                Vent engineNordVent = null;
+                Vent engineSudVent = null;
+                Vent securityVent = null;
+                Vent medVent = null;
+                List<GameObject> impostorDetectors = new List<GameObject>();
+                var gameObjects = GameObject.FindObjectsOfType<GameObject>();
+                foreach (var gameObject in gameObjects)
+                {
+                    var name = gameObject.name;
+                    if (name == "MapRoomConsole")
+                    {
+                        admin = gameObject;
+                        continue;
+                    }
+                    else if (name == "MapAnimation")
+                    {
+                        animation = gameObject;
+                        continue;
+                    }
+
+                    var vent = gameObject.GetComponent<Vent>();
+                    if (vent != null)
+                    {
+                        if (name == "AdminVent")
+                        {
+                            adminVent = vent;
+                        }
+                        else if (name == "CafeVent")
+                        {
+                            cafeteriaVent = vent;
+                        }
+                        else if (name == "NavVentNorth")
+                        {
+                            navNordVent = vent;
+                        }
+                        else if (name == "NavVentSouth")
+                        {
+                            navSudVent = vent;
+                        }
+                        else if (name == "WeaponsVent")
+                        {
+                            weaponsVent = vent;
+                        }
+                        else if (name == "ShieldsVent")
+                        {
+                            shieldVent = vent;
+                        }
+                        else if (name == "BigYVent")
+                        {
+                            couloirVent = vent;
+                        }
+                        else if (name == "ElecVent")
+                        {
+                            elecVent = vent;
+                        }
+                        else if (name == "UpperReactorVent")
+                        {
+                            reactorNordVent = vent;
+                        }
+                        else if (name == "ReactorVent")
+                        {
+                            reactorSudVent = vent;
+                        }
+                        else if (name == "LEngineVent")
+                        {
+                            engineNordVent = vent;
+                        }
+                        else if (name == "REngineVent")
+                        {
+                            engineSudVent = vent;
+                        }
+                        else if (name == "SecurityVent")
+                        {
+                            securityVent = vent;
+                        }
+                        else if (name == "MedVent")
+                        {
+                            medVent = vent;
+                        }
+                    }
+                    else if (gameObject.GetComponent<ImpostorDetector>() != null)
+                    {
+                        impostorDetectors.Add(gameObject);
+                    }
+                }
+
+                if (admin == null ||
+                    animation == null ||
+                    adminVent == null ||
+                    cafeteriaVent == null ||
+                    navNordVent == null ||
+                    navSudVent == null ||
+                    weaponsVent == null ||
+                    shieldVent == null ||
+                    couloirVent == null ||
+                    elecVent == null ||
+                    reactorNordVent == null ||
+                    reactorSudVent == null ||
+                    engineNordVent == null ||
+                    engineSudVent == null ||
+                    securityVent == null ||
+                    medVent == null)
+                    return;
+                
                 var vitalsObj = res.transform.Find("Office/panel_vitals").gameObject;
-                var admin = GameObject.Find("MapRoomConsole");
-                var animation = GameObject.Find("MapAnimation");
-                var impostorDetectors = GameObject.FindObjectsOfType<ImpostorDetector>();
                 
                 // Ajouter les signaux vitaux
                 Instance.Log.LogDebug("Placing vitals...");
@@ -75,9 +188,8 @@ namespace BetterSkeld
                     impostorDetector.GetComponent<CircleCollider2D>().enabled = false;
                 }
                 
-                // Relier toutes les vents à gauche, et toutes celles à droite
+                // Relier toutes les vents de gauche entre elles, et toutes celles de droite entre elles
                 Instance.Log.LogDebug("Rerouting vents...");
-                // TODO: faire ça après
                 
                 Instance.Log.LogInfo("Successfully patched TheSkeld !");
                 Destroy(this.gameObject);

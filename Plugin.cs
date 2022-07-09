@@ -188,8 +188,46 @@ namespace BetterSkeld
                     impostorDetector.GetComponent<CircleCollider2D>().enabled = false;
                 }
                 
-                // Relier toutes les vents de gauche entre elles, et toutes celles de droite entre elles
+                // Relier toutes les vents de droite entre elles...
                 Instance.Log.LogDebug("Rerouting vents...");
+                weaponsVent.Center = cafeteriaVent;
+                cafeteriaVent.Center = weaponsVent;
+
+                navNordVent.Right = navSudVent;
+                navSudVent.Right = navNordVent;
+
+                navNordVent.Center = couloirVent;
+                navSudVent.Center = couloirVent;
+                couloirVent.Center = navNordVent;
+                
+                weaponsVent.Left = couloirVent;
+
+                adminVent.Center = shieldVent;
+                shieldVent.Center = adminVent;
+
+                // ... et toutes celles de gauche entre elles
+                engineNordVent.Center = medVent;
+                medVent.Center = engineNordVent;
+
+                reactorNordVent.Center = securityVent;
+                securityVent.Center = reactorNordVent;
+
+                reactorNordVent.Left = reactorSudVent;
+                reactorSudVent.Left = reactorNordVent;
+                
+                reactorSudVent.Center = securityVent;
+
+                elecVent.Center = engineSudVent;
+                engineSudVent.Center = elecVent;
+
+                // couloirVent.Right = navNordVent;
+                // navNordVent.Center = couloirVent;
+                // 
+                // navNordVent.Right = navSudVent;
+                // navSudVent.Right = navNordVent;
+                // 
+                // reactorNordVent.Left = reactorSudVent;
+                // reactorSudVent.Right = reactorNordVent;
                 
                 Instance.Log.LogInfo("Successfully patched TheSkeld !");
                 Destroy(this.gameObject);

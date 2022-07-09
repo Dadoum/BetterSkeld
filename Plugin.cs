@@ -219,15 +219,6 @@ namespace BetterSkeld
 
                 elecVent.Center = engineSudVent;
                 engineSudVent.Center = elecVent;
-
-                // couloirVent.Right = navNordVent;
-                // navNordVent.Center = couloirVent;
-                // 
-                // navNordVent.Right = navSudVent;
-                // navSudVent.Right = navNordVent;
-                // 
-                // reactorNordVent.Left = reactorSudVent;
-                // reactorSudVent.Right = reactorNordVent;
                 
                 Instance.Log.LogInfo("Successfully patched TheSkeld !");
                 Destroy(this.gameObject);
@@ -240,15 +231,13 @@ namespace BetterSkeld
             {
                 var client = AmongUsClient.Instance;
                 
-                // On charge Polus 
-                var res = Addressables.LoadAssetAsync<GameObject>(client.ShipPrefabs[(Index) (int) ShipStatus.MapType.Pb]).Result;
-                if (!res)
-                    return; // On réessaiera de charger à la prochaine update
-                
                 Instance.Log.LogDebug("Patching MiraHQ...");
                 
                 // Récup les ressources
                 var impostorDetectors = GameObject.FindObjectsOfType<ImpostorDetector>();
+                
+                if (impostorDetectors.Count == 0)
+                    return; // On réessaiera de charger à la prochaine update
 
                 // HACK: je sais pas trop à quoi il sert en temps normal, mais ce composant cause le bug de glissement
                 // à la tâche des feuilles !

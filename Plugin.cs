@@ -1,19 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using BepInEx;
-using BepInEx.IL2CPP;
+using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using TMPro;
-using UnhollowerRuntimeLib;
+using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 
 namespace BetterSkeld
 {
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(Id, Name, Version)]
     public class BetterSkeldPlugin : BasePlugin
     {
+        public const string Id = "com.dadoum.betterskeld";
+        public const string Name = "BetterSkeld";
+        public const string Version = "0.1.2";
         public static BetterSkeldPlugin Instance { get; private set; }
 
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Start))]
@@ -26,9 +27,6 @@ namespace BetterSkeld
                 {
                     case ShipStatus.MapType.Ship:
                         patcher.AddComponent<SkeldPatcher>();
-                        break;
-                    case ShipStatus.MapType.Hq:
-                        patcher.AddComponent<MiraHQPatcher>();
                         break;
                 }
             }
@@ -64,7 +62,6 @@ namespace BetterSkeld
                 Vent engineSudVent = null;
                 Vent securityVent = null;
                 Vent medVent = null;
-                List<GameObject> impostorDetectors = new List<GameObject>();
                 var gameObjects = GameObject.FindObjectsOfType<GameObject>();
                 foreach (var gameObject in gameObjects)
                 {
@@ -140,10 +137,6 @@ namespace BetterSkeld
                             medVent = vent;
                         }
                     }
-                    else if (gameObject.GetComponent<ImpostorDetector>() != null)
-                    {
-                        impostorDetectors.Add(gameObject);
-                    }
                 }
 
                 if (admin == null ||
@@ -179,14 +172,6 @@ namespace BetterSkeld
                 
                 // Désactiver l'animation car il n'y a plus de carte, donc pour le RP faut plus qu'on la voie
                 animation.active = false;
-                
-                // HACK: je sais pas trop à quoi il sert en temps normal, mais ce composant cause le bug de glissement
-                // à la tâche des feuilles !
-                Instance.Log.LogDebug("Fixing \"Clean O₂ Filter\" task...");
-                foreach (var impostorDetector in impostorDetectors)
-                {
-                    impostorDetector.GetComponent<CircleCollider2D>().enabled = false;
-                }
                 
                 // Relier toutes les vents de droite entre elles...
                 Instance.Log.LogDebug("Rerouting vents...");
@@ -225,39 +210,12 @@ namespace BetterSkeld
             }
         }
 
-        public class MiraHQPatcher : MonoBehaviour
-        {
-            private void FixedUpdate()
-            {
-                var client = AmongUsClient.Instance;
-                
-                Instance.Log.LogDebug("Patching MiraHQ...");
-                
-                // Récup les ressources
-                var impostorDetectors = GameObject.FindObjectsOfType<ImpostorDetector>();
-                
-                if (impostorDetectors.Count == 0)
-                    return; // On réessaiera de charger à la prochaine update
-
-                // HACK: je sais pas trop à quoi il sert en temps normal, mais ce composant cause le bug de glissement
-                // à la tâche des feuilles !
-                Instance.Log.LogDebug("Fixing \"Clean O₂ Filter\" task...");
-                foreach (var impostorDetector in impostorDetectors)
-                {
-                    impostorDetector.GetComponent<CircleCollider2D>().enabled = false;
-                }
-                
-                Instance.Log.LogInfo("Successfully patched MiraHQ !");
-                Destroy(this.gameObject);
-            }
-        }
-
         [HarmonyPatch(typeof(VersionShower), nameof(VersionShower.Start))]
         public static class VersionShowerPatch
         {
             public static void Postfix(VersionShower __instance)
             {
-                __instance.text.text += $"<size=40%> + {PluginInfo.PLUGIN_NAME} v{PluginInfo.PLUGIN_VERSION} (Dadoum)</size>";
+                __instance.text.text += $"<size=70%> + {Name} v{Version} (Dadoum)</size>";
             }
         }
         
@@ -265,9 +223,8 @@ namespace BetterSkeld
         {
             Instance = this;
             
-            ClassInjector.RegisterTypeInIl2Cpp<MiraHQPatcher>();
             ClassInjector.RegisterTypeInIl2Cpp<SkeldPatcher>();
-            new Harmony(PluginInfo.PLUGIN_GUID).PatchAll();
+            new Harmony(Id).PatchAll();
             
             SceneManager.sceneLoaded += (Action<Scene, LoadSceneMode>) ((scene, loadSceneMode) =>
             {

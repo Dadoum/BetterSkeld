@@ -27,9 +27,6 @@ namespace BetterSkeld
                     case ShipStatus.MapType.Ship:
                         patcher.AddComponent<SkeldPatcher>();
                         break;
-                    case ShipStatus.MapType.Hq:
-                        patcher.AddComponent<MiraHQPatcher>();
-                        break;
                 }
             }
         }
@@ -64,7 +61,6 @@ namespace BetterSkeld
                 Vent engineSudVent = null;
                 Vent securityVent = null;
                 Vent medVent = null;
-                List<GameObject> impostorDetectors = new List<GameObject>();
                 var gameObjects = GameObject.FindObjectsOfType<GameObject>();
                 foreach (var gameObject in gameObjects)
                 {
@@ -140,10 +136,6 @@ namespace BetterSkeld
                             medVent = vent;
                         }
                     }
-                    else if (gameObject.GetComponent<ImpostorDetector>() != null)
-                    {
-                        impostorDetectors.Add(gameObject);
-                    }
                 }
 
                 if (admin == null ||
@@ -179,14 +171,6 @@ namespace BetterSkeld
                 
                 // Désactiver l'animation car il n'y a plus de carte, donc pour le RP faut plus qu'on la voie
                 animation.active = false;
-                
-                // HACK: je sais pas trop à quoi il sert en temps normal, mais ce composant cause le bug de glissement
-                // à la tâche des feuilles !
-                Instance.Log.LogDebug("Fixing \"Clean O₂ Filter\" task...");
-                foreach (var impostorDetector in impostorDetectors)
-                {
-                    impostorDetector.GetComponent<CircleCollider2D>().enabled = false;
-                }
                 
                 // Relier toutes les vents de droite entre elles...
                 Instance.Log.LogDebug("Rerouting vents...");
@@ -225,33 +209,6 @@ namespace BetterSkeld
             }
         }
 
-        public class MiraHQPatcher : MonoBehaviour
-        {
-            private void FixedUpdate()
-            {
-                var client = AmongUsClient.Instance;
-                
-                Instance.Log.LogDebug("Patching MiraHQ...");
-                
-                // Récup les ressources
-                var impostorDetectors = GameObject.FindObjectsOfType<ImpostorDetector>();
-                
-                if (impostorDetectors.Count == 0)
-                    return; // On réessaiera de charger à la prochaine update
-
-                // HACK: je sais pas trop à quoi il sert en temps normal, mais ce composant cause le bug de glissement
-                // à la tâche des feuilles !
-                Instance.Log.LogDebug("Fixing \"Clean O₂ Filter\" task...");
-                foreach (var impostorDetector in impostorDetectors)
-                {
-                    impostorDetector.GetComponent<CircleCollider2D>().enabled = false;
-                }
-                
-                Instance.Log.LogInfo("Successfully patched MiraHQ !");
-                Destroy(this.gameObject);
-            }
-        }
-
         [HarmonyPatch(typeof(VersionShower), nameof(VersionShower.Start))]
         public static class VersionShowerPatch
         {
@@ -265,13 +222,12 @@ namespace BetterSkeld
         {
             Instance = this;
             
-            ClassInjector.RegisterTypeInIl2Cpp<MiraHQPatcher>();
             ClassInjector.RegisterTypeInIl2Cpp<SkeldPatcher>();
             new Harmony(PluginInfo.PLUGIN_GUID).PatchAll();
             
             SceneManager.sceneLoaded += (Action<Scene, LoadSceneMode>) ((scene, loadSceneMode) =>
             {
-                ModManager.Instance.ShowModStamp();
+                ModManager.Instance?.ShowModStamp();
             });
         }
     }

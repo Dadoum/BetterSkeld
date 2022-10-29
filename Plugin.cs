@@ -1,19 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using BepInEx;
-using BepInEx.IL2CPP;
+using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using TMPro;
-using UnhollowerRuntimeLib;
+using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 
 namespace BetterSkeld
 {
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin(Id, Name, Version)]
     public class BetterSkeldPlugin : BasePlugin
     {
+        public const string Id = "com.dadoum.betterskeld";
+        public const string Name = "BetterSkeld";
+        public const string Version = "0.1.2";
         public static BetterSkeldPlugin Instance { get; private set; }
 
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Start))]
@@ -214,7 +215,7 @@ namespace BetterSkeld
         {
             public static void Postfix(VersionShower __instance)
             {
-                __instance.text.text += $"<size=40%> + {PluginInfo.PLUGIN_NAME} v{PluginInfo.PLUGIN_VERSION} (Dadoum)</size>";
+                __instance.text.text += $"<size=70%> + {Name} v{Version} (Dadoum)</size>";
             }
         }
         
@@ -223,7 +224,7 @@ namespace BetterSkeld
             Instance = this;
             
             ClassInjector.RegisterTypeInIl2Cpp<SkeldPatcher>();
-            new Harmony(PluginInfo.PLUGIN_GUID).PatchAll();
+            new Harmony(Id).PatchAll();
             
             SceneManager.sceneLoaded += (Action<Scene, LoadSceneMode>) ((scene, loadSceneMode) =>
             {
